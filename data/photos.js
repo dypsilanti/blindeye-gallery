@@ -1,43 +1,43 @@
 export const photos = [
   {
     id: 1,
-    src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop',
+    src: 'https://f000.backblazeb2.com/file/be-images/adhesive-09412.jpg',
     alt: 'Mountain landscape',
     title: 'Mountain Summit',
     subtitle: 'Golden hour in the Alps',
-    band: 'The Strokes',
-    venue: 'Madison Square Garden',
-    year: '2023'
+    band: 'Adhesive',
+    venue: 'The Ox',
+    year: '2026'
   },
   {
     id: 2,
-    src: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=400&h=500&fit=crop',
+    src: 'https://f000.backblazeb2.com/file/be-images/adhesive-09419.jpg',
     alt: 'Urban street',
     title: 'City Streets',
     subtitle: 'Architecture and life',
-    band: 'Radiohead',
-    venue: 'O2 Arena',
-    year: '2023'
+    band: 'Adhesive',
+    venue: 'The Ox',
+    year: '2026'
   },
   {
     id: 3,
-    src: 'https://images.unsplash.com/photo-1495733453950-bbc79378e3c7?w=400&h=500&fit=crop',
+    src: 'https://f000.backblazeb2.com/file/be-images/love-canal-09349.jpg',
     alt: 'Ocean sunset',
     title: 'Seascape Dreams',
     subtitle: 'Waves at golden hour',
-    band: 'Arctic Monkeys',
-    venue: 'Coachella',
-    year: '2024'
+    band: 'Love Canal',
+    venue: 'The Ox',
+    year: '2026'
   },
   {
     id: 4,
-    src: 'https://images.unsplash.com/photo-1516589178587-eb01d0b1f5a0?w=400&h=500&fit=crop',
+    src: 'https://f000.backblazeb2.com/file/be-images/prison-affair-09455.jpg',
     alt: 'Forest',
     title: 'Into the Woods',
     subtitle: 'Nature\'s quiet moments',
-    band: 'Tame Impala',
-    venue: 'Glastonbury',
-    year: '2024'
+    band: 'Prison Affair',
+    venue: 'The Ox',
+    year: '2026'
   },
   {
     id: 5,
@@ -121,6 +121,6 @@ export const photos = [
   }
 ]
 
-export const bands = ['The Strokes', 'Radiohead', 'Arctic Monkeys', 'Tame Impala', 'The National', 'Wet Leg', 'King Gizzard', 'Phoebe Bridgers']
-export const venues = ['Madison Square Garden', 'O2 Arena', 'Coachella', 'Glastonbury', 'Sydney Opera House', 'Reading Festival', 'Bonnaroo', 'Red Rocks', 'Greek Theatre', 'Lollapalooza', 'Primavera Sound']
-export const years = ['2023', '2024']
+export const bands = ['Adhesive', 'Love Canal', 'Prison Affair', 'Tame Impala', 'The National', 'Wet Leg', 'King Gizzard', 'Phoebe Bridgers']
+export const venues = ['The Ox', 'O2 Arena', 'Coachella', 'Glastonbury', 'Sydney Opera House', 'Reading Festival', 'Bonnaroo', 'Red Rocks', 'Greek Theatre', 'Lollapalooza', 'Primavera Sound']
+export const years = ['2026', '2024']

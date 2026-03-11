@@ -1,8 +1,7 @@
 import FilterMenu from './FilterMenu'
 import styles from './Header.module.css'
-import { bands, venues, years } from '@/data/photos'
 
-export default function Header({ filters, onFilterChange }) {
+export default function Header({ filters, onFilterChange, bands, venues, years }) {
   return (
     <header className={styles.header}>
       <h1 className={styles.title}>
@@ -15,19 +14,19 @@ export default function Header({ filters, onFilterChange }) {
       
       <div className={styles.filters}>
         <FilterMenu
-          label="Bands"
+          label="Band"
           options={bands}
           selected={filters.band}
           onSelect={(value) => onFilterChange('band', value)}
         />
         <FilterMenu
-          label="Venues"
+          label="Venue"
           options={venues}
           selected={filters.venue}
           onSelect={(value) => onFilterChange('venue', value)}
         />
         <FilterMenu
-          label="Years"
+          label="Year"
           options={years}
           selected={filters.year}
           onSelect={(value) => onFilterChange('year', value)}

@@ -1,37 +1,33 @@
-'use client'
+import HomeClient from './HomeClient'
+import { client } from '@/sanity/lib/client'
+import { urlFor } from '@/sanity/lib/image'
+import { photosQuery } from '@/sanity/lib/queries'
 
-import { useState } from 'react'
-import Header from '@/components/Header'
-import Gallery from '@/components/Gallery'
-import Footer from '@/components/Footer'
-import { photos } from '@/data/photos'
+export const dynamic = 'force-dynamic'
 
-export default function Home() {
-  const [filters, setFilters] = useState({
-    band: '',
-    venue: '',
-    year: ''
-  })
+function formatFriendlyDate(dateString) {
+  if (!dateString) return 'an unknown date'
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-  }
+  const date = new Date(dateString)
+  if (Number.isNaN(date.getTime())) return dateString
 
-  const filteredPhotos = photos.filter(photo => {
-    const matchesBand = !filters.band || photo.band === filters.band
-    const matchesVenue = !filters.venue || photo.venue === filters.venue
-    const matchesYear = !filters.year || photo.year === filters.year
-    return matchesBand && matchesVenue && matchesYear
-  })
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date)
+}
 
-  return (
-    <>
-      <Header 
-        filters={filters}
-        onFilterChange={handleFilterChange}
-      />
-      <Gallery photos={filteredPhotos} />
-      <Footer />
-    </>
-  )
+export default async function Home() {
+  const rawPhotos = await client.fetch(photosQuery, {}, {cache: 'no-store'})
+
+  const photos = rawPhotos.map(photo => ({
+    ...photo,
+    altText: `Photo of ${photo.band || 'an artist'} at ${photo.venue || 'an unknown venue'} on ${formatFriendlyDate(photo.date)}`,
+    imageUrl: photo.image
+      ? urlFor(photo.image).width(400).height(500).fit('crop').url()
+      : null,
+  }))
+
+  return <HomeClient photos={photos} />
 }

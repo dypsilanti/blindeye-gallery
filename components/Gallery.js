@@ -6,17 +6,19 @@ export default function Gallery({ photos }) {
     <div className={styles.container}>
       <div className={styles.gallery}>
         {photos.map(photo => (
-          <div key={photo.id} className={styles.galleryItem}>
+          <div key={photo._id} className={styles.galleryItem}>
             <Image
-              src={photo.src}
-              alt={photo.alt}
+              src={photo.imageUrl}
+              alt={photo.altText}
               width={400}
               height={500}
               className={styles.image}
             />
             <div className={styles.overlay}>
-              <h3>{photo.title}</h3>
-              <p>{photo.subtitle}</p>
+              <h3>{photo.band}</h3>
+              {photo.venue && <p>{photo.venue}</p>}
+              {photo.city && <p>{photo.city}</p>}
+              {photo.date && <p>{photo.date}</p>}
             </div>
           </div>
         ))}

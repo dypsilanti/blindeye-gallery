@@ -6,12 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "studio": "sanity dev",
+    "import:photos": "node scripts/import-photos.mjs",
+    "bulk:update:photos": "node scripts/bulk-update-photos.mjs"
   },
   "dependencies": {
+    "@sanity/vision": "^3.65.1",
     "next": "^14.1.0",
+    "next-sanity": "^8.5.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "sanity": "^3.65.1",
+    "styled-components": "^6.1.19"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
