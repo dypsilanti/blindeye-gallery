@@ -110,6 +110,21 @@ npm run build
 npm start
 ```
 
+### Vercel Environment Variables
+
+Add these in your Vercel project settings for Production/Preview:
+- `NEXT_PUBLIC_SANITY_PROJECT_ID`
+- `NEXT_PUBLIC_SANITY_DATASET`
+- `NEXT_PUBLIC_SANITY_API_VERSION`
+
+Optional server-only equivalents (also supported by scripts/client):
+- `SANITY_PROJECT_ID`
+- `SANITY_DATASET`
+- `SANITY_API_VERSION`
+
+For import/update scripts, also add:
+- `SANITY_API_TOKEN`
+
 ## Project Structure
 
 ```

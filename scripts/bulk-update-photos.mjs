@@ -104,12 +104,12 @@ function parseArgs() {
 }
 
 function createSanityClient() {
-  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
-  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
-  const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2026-03-11'
+  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || process.env.SANITY_PROJECT_ID
+  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || process.env.SANITY_DATASET || 'production'
+  const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || process.env.SANITY_API_VERSION || '2026-03-11'
   const token = process.env.SANITY_API_TOKEN
 
-  if (!projectId) throw new Error('Missing NEXT_PUBLIC_SANITY_PROJECT_ID')
+  if (!projectId) throw new Error('Missing NEXT_PUBLIC_SANITY_PROJECT_ID or SANITY_PROJECT_ID')
   if (!token) throw new Error('Missing SANITY_API_TOKEN')
 
   return createClient({
