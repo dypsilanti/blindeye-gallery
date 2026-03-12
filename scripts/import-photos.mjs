@@ -86,6 +86,18 @@ function createSanityClient() {
   })
 }
 
+async function fetchImportedFilenames(client) {
+  // Retrieve every photo document and follow the image asset reference so we
+  // can read the originalFilename that Sanity stores when an asset is uploaded.
+  const docs = await client.fetch(
+    `*[_type == "photo" && defined(image.asset)]{
+       "originalFilename": image.asset->originalFilename
+     }`,
+  )
+
+  return new Set(docs.map((doc) => doc.originalFilename).filter(Boolean))
+}
+
 async function main() {
   const {imagesDir, metadataPath} = parseArgs()
   const metadata = await loadMetadata(metadataPath)
@@ -102,10 +114,22 @@ async function main() {
     return
   }
 
+  console.log('Checking for already-imported photos…')
+  const importedFilenames = await fetchImportedFilenames(client)
+  console.log(`Found ${importedFilenames.size} previously imported photo(s).`)
+
   let importedCount = 0
+  let skippedCount = 0
 
   for (const filePath of imageFiles) {
     const filename = path.basename(filePath)
+
+    if (importedFilenames.has(filename)) {
+      skippedCount += 1
+      console.log(`Skipped (duplicate): ${filename}`)
+      continue
+    }
+
     const filenameData = parseFromFilename(filePath)
     const metadataData = metadata[filename] || metadata[path.parse(filename).name] || {}
 
@@ -134,10 +158,10 @@ async function main() {
     })
 
     importedCount += 1
-    console.log(`Imported ${importedCount}/${imageFiles.length}: ${filename}`)
+    console.log(`Imported ${importedCount}/${imageFiles.length - skippedCount}: ${filename}`)
   }
 
-  console.log(`Done. Imported ${importedCount} photo documents.`)
+  console.log(`Done. Imported ${importedCount} new photo(s), skipped ${skippedCount} duplicate(s).`)
 }
 
 main().catch((error) => {
