@@ -27,6 +27,9 @@ export default async function Home() {
     imageUrl: photo.image
       ? urlFor(photo.image).width(400).height(500).fit('crop').url()
       : null,
+    fullImageUrl: photo.image
+      ? urlFor(photo.image).fit('max').url()
+      : null,
   }))
 
   return <HomeClient photos={photos} />
