@@ -33,3 +33,38 @@
   justify-content: center;
   margin: 0;
 }
+
+.sortGroup {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.sortButton {
+  background-color: #1a1a1a;
+  border: 1px solid transparent;
+  border-radius: 0;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.95em;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.sortButton:hover {
+  border-color: #666;
+}
+
+.sortButton:active {
+  background-color: #2d2d2d;
+}
+
+.sortActive {
+  border-color: #666;
+  background-color: #2d2d2d;
+}
