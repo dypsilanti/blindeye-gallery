@@ -9,7 +9,7 @@ export default function Header({ filters, onFilterChange, bands, venues, years, 
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
           <circle cx="12" cy="12" r="3"></circle>
         </svg>
-        blindeye.fl
+        blindeye.photo
       </h1>
       
       <div className={styles.filters}>

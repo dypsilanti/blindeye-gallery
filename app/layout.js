@@ -1,4 +1,5 @@
 import { Outfit } from 'next/font/google'
+import { Analytics } from "@vercel/analytics/next"
 import './globals.css'
 
 const outfit = Outfit({ 
@@ -7,14 +8,17 @@ const outfit = Outfit({
 })
 
 export const metadata = {
-  title: 'blindeye.fl - Photo Portfolio',
-  description: 'A collection of moments captured in light and time',
+  title: 'blindeye.photo - Photo Portfolio',
+  description: 'Live music photography',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={outfit.className}>{children}</body>
+      <body className={outfit.className}>
+          {children}
+          <Analytics />
+        </body>
     </html>
   )
 }
