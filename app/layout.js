@@ -1,5 +1,6 @@
 import { Outfit } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import './globals.css'
 
 const outfit = Outfit({ 
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
       <body className={outfit.className}>
           {children}
           <Analytics />
+          <SpeedInsights />
         </body>
     </html>
   )
