@@ -25,8 +25,12 @@ function shuffleArray(arr, seed) {
   })
 }
 
+function normalizeVenueSortName(venue) {
+  return String(venue || '').replace(/^the\s+/i, '').trim()
+}
+
 export default function HomeClient({ photos, initialShuffleSeed }) {
-  const [filters, setFilters] = useState({ band: '', venue: '', year: '' })
+  const [filters, setFilters] = useState({ band: '', venue: '', year: '', city: '', date: '' })
   const [sortOrder, setSortOrder] = useState('shuffle')
   const [shuffleSeed, setShuffleSeed] = useState(initialShuffleSeed)
   const [headerHidden, setHeaderHidden] = useState(false)
@@ -55,19 +59,104 @@ export default function HomeClient({ photos, initialShuffleSeed }) {
   }
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
+    setFilters((prev) => {
+      const next = { ...prev, [key]: value }
+
+      // Year dropdown controls broad year filtering, so clear exact-date facet.
+      if (key === 'year') {
+        next.date = ''
+      }
+
+      return next
+    })
   }
 
-  const bands = useMemo(() => [...new Set(photos.map(p => p.band).filter(Boolean))].sort(), [photos])
-  const venues = useMemo(() => [...new Set(photos.map(p => p.venue).filter(Boolean))].sort(), [photos])
-  const years = useMemo(() => [...new Set(photos.map(p => p.date?.slice(0, 4)).filter(Boolean))].sort(), [photos])
+  const handleMetadataFilter = (keyOrFilters, value) => {
+    const resetFilters = { band: '', venue: '', year: '', city: '', date: '' }
+
+    if (typeof keyOrFilters === 'object' && keyOrFilters !== null) {
+      setFilters({ ...resetFilters, ...keyOrFilters })
+      return
+    }
+
+    setFilters({ ...resetFilters, [keyOrFilters]: value })
+  }
+
+  const bands = useMemo(() => {
+    const sourcePhotos = photos.filter((photo) => {
+      const matchesVenue = !filters.venue || photo.venue === filters.venue
+      const matchesYear = !filters.year || photo.date?.slice(0, 4) === filters.year
+      const matchesCity = !filters.city || photo.city === filters.city
+      const matchesDate = !filters.date || photo.date === filters.date
+      return matchesVenue && matchesYear && matchesCity && matchesDate
+    })
+
+    return [...new Set(sourcePhotos.map((photo) => photo.band).filter(Boolean))].sort()
+  }, [photos, filters])
+
+  const venues = useMemo(() => {
+    const sourcePhotos = photos.filter((photo) => {
+      const matchesBand = !filters.band || photo.band === filters.band
+      const matchesYear = !filters.year || photo.date?.slice(0, 4) === filters.year
+      const matchesCity = !filters.city || photo.city === filters.city
+      const matchesDate = !filters.date || photo.date === filters.date
+      return matchesBand && matchesYear && matchesCity && matchesDate
+    })
+
+    const venueToCities = new Map()
+
+    for (const photo of sourcePhotos) {
+      if (!photo.venue) continue
+
+      if (!venueToCities.has(photo.venue)) {
+        venueToCities.set(photo.venue, new Set())
+      }
+
+      if (photo.city) {
+        venueToCities.get(photo.venue).add(photo.city)
+      }
+    }
+
+    return [...venueToCities.entries()]
+      .sort(([a], [b]) => {
+        const normalizedA = normalizeVenueSortName(a)
+        const normalizedB = normalizeVenueSortName(b)
+        const primary = normalizedA.localeCompare(normalizedB)
+        if (primary !== 0) return primary
+        return a.localeCompare(b)
+      })
+      .map(([venue, cities]) => {
+        const cityList = [...cities].sort((a, b) => a.localeCompare(b))
+        const citySuffix = cityList.length > 0 ? ` - ${cityList[0]}` : ''
+
+        return {
+          value: venue,
+          label: `${venue}${citySuffix}`,
+        }
+      })
+  }, [photos, filters])
+
+  const years = useMemo(() => {
+    const sourcePhotos = photos.filter((photo) => {
+      const matchesBand = !filters.band || photo.band === filters.band
+      const matchesVenue = !filters.venue || photo.venue === filters.venue
+      const matchesCity = !filters.city || photo.city === filters.city
+      const matchesDate = !filters.date || photo.date === filters.date
+      return matchesBand && matchesVenue && matchesCity && matchesDate
+    })
+
+    return [...new Set(sourcePhotos.map((photo) => photo.date?.slice(0, 4)).filter(Boolean))]
+      .sort((a, b) => b.localeCompare(a))
+  }, [photos, filters])
 
   const orderedPhotos = useMemo(() => {
     const base = photos.filter(photo => {
       const matchesBand = !filters.band || photo.band === filters.band
       const matchesVenue = !filters.venue || photo.venue === filters.venue
       const matchesYear = !filters.year || photo.date?.slice(0, 4) === filters.year
-      return matchesBand && matchesVenue && matchesYear
+      const matchesCity = !filters.city || photo.city === filters.city
+      const matchesDate = !filters.date || photo.date === filters.date
+      return matchesBand && matchesVenue && matchesYear && matchesCity && matchesDate
     })
     if (sortOrder === 'newest') {
       return [...base].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
@@ -94,7 +183,7 @@ export default function HomeClient({ photos, initialShuffleSeed }) {
         onSortChange={handleSortChange}
         hidden={headerHidden}
       />
-      <Gallery photos={orderedPhotos} />
+      <Gallery photos={orderedPhotos} onMetadataFilter={handleMetadataFilter} />
       <Footer />
     </>
   )

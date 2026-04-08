@@ -3,6 +3,12 @@
   width: 150px;
 }
 
+.alignStart {}
+
+.alignCenter {}
+
+.alignEnd {}
+
 .filterTrigger {
   width: 100%;
   padding: 8px 12px;
@@ -36,6 +42,22 @@
   z-index: 10;
 }
 
+.filterOptions.columns {
+  width: min(460px, 78vw);
+  max-height: min(68vh, 460px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.filterOptions.columns::-webkit-scrollbar {
+  width: 8px;
+}
+
+.filterOptions.columns::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
 .filterOptions.visible {
   opacity: 1;
   visibility: visible;
@@ -55,7 +77,58 @@
   font-size: 0.9em;
 }
 
+.columnsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.column {
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .filterMenu {
+    width: min(31vw, 150px);
+  }
+
+  .filterOptions {
+    width: min(92vw, 320px);
+  }
+
+  .alignStart .filterOptions {
+    left: 0;
+    right: auto;
+  }
+
+  .alignCenter .filterOptions {
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, 6px);
+  }
+
+  .alignCenter .filterOptions.visible {
+    transform: translate(-50%, 0);
+  }
+
+  .alignEnd .filterOptions {
+    left: auto;
+    right: 0;
+  }
+
+  .filterOptions.columns {
+    width: min(320px, 92vw);
+  }
+
+  .columnsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .filterOption:hover,
 .filterOption.active {
   background-color: #2d2d2d;
+}
+
+.leftAligned {
+  text-align: left;
 }

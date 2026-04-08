@@ -64,10 +64,20 @@ const buildYearGroup = (S, context, title, matcher) =>
     .child(async () => {
       const client = context.getClient({apiVersion: '2021-06-07'})
       const records = await client.fetch(
-        `*[_type == "photo" && defined(year)]{ "value": year }`
+        `*[_type == "photo"]{ year, date }`
       )
 
-      const years = [...new Set(records.map((record) => record.value).filter((value) => Number.isFinite(value)))]
+      const years = [...new Set(
+        records
+          .map((record) => {
+            if (Number.isFinite(record.year)) return record.year
+
+            const rawDate = typeof record.date === 'string' ? record.date : ''
+            const match = rawDate.match(/^(\d{4})/)
+            return match ? Number.parseInt(match[1], 10) : null
+          })
+          .filter((value) => Number.isFinite(value))
+      )]
         .filter((year) => matcher(year))
         .sort((a, b) => b - a)
 
@@ -86,7 +96,7 @@ const buildYearGroup = (S, context, title, matcher) =>
               .child(
                 S.documentList()
                   .title(String(year))
-                  .filter(`_type == "photo" && year == ${year}`)
+                  .filter(`_type == "photo" && ((defined(year) && year == ${year}) || (defined(date) && date match "${year}*"))`)
                   .defaultOrdering([{field: 'date', direction: 'desc'}])
               )
           )
@@ -138,7 +148,14 @@ export const deskStructure = (S, context) =>
               buildYearGroup(S, context, '2010-2019', (year) => year >= 2010 && year <= 2019),
               buildYearGroup(S, context, '2000-2009', (year) => year >= 2000 && year <= 2009),
               buildYearGroup(S, context, 'Before 2000', (year) => year < 2000),
-              buildUnknownBucket(S, 'year', 'Year Unknown'),
+              S.listItem()
+                .title('Year Unknown')
+                .child(
+                  S.documentList()
+                    .title('Year Unknown')
+                    .filter('_type == "photo" && (!defined(year) || year == null) && (!defined(date) || date == "")')
+                    .defaultOrdering([{field: '_createdAt', direction: 'desc'}])
+                ),
             ])
         ),
       S.listItem()
@@ -165,6 +182,19 @@ export const deskStructure = (S, context) =>
               buildAlphaBucket(S, context, 'venue', 'Venue M-R', ['M', 'N', 'O', 'P', 'Q', 'R']),
               buildAlphaBucket(S, context, 'venue', 'Venue S-Z', ['S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']),
               buildUnknownBucket(S, 'venue', 'Venue Unknown'),
+            ])
+        ),
+      S.listItem()
+        .title('By City')
+        .child(
+          S.list()
+            .title('By City')
+            .items([
+              buildAlphaBucket(S, context, 'city', 'City A-F', ['A', 'B', 'C', 'D', 'E', 'F']),
+              buildAlphaBucket(S, context, 'city', 'City G-L', ['G', 'H', 'I', 'J', 'K', 'L']),
+              buildAlphaBucket(S, context, 'city', 'City M-R', ['M', 'N', 'O', 'P', 'Q', 'R']),
+              buildAlphaBucket(S, context, 'city', 'City S-Z', ['S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']),
+              buildUnknownBucket(S, 'city', 'City Unknown'),
             ])
         ),
       S.divider(),

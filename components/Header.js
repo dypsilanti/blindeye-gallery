@@ -17,51 +17,50 @@ export default function Header({ filters, onFilterChange, bands, venues, years, 
           label="Band"
           options={bands}
           selected={filters.band}
+          alignLeft
+          dropdownAlign="start"
           onSelect={(value) => onFilterChange('band', value)}
         />
         <FilterMenu
           label="Venue"
           options={venues}
           selected={filters.venue}
+          alignLeft
+          dropdownAlign="center"
           onSelect={(value) => onFilterChange('venue', value)}
         />
         <FilterMenu
           label="Year"
           options={years}
           selected={filters.year}
+          dropdownAlign="end"
           onSelect={(value) => onFilterChange('year', value)}
         />
       </div>
 
       <div className={styles.sortGroup}>
-        {/* Newest — arrow pointing up */}
+        {/* Date order toggle */}
         <button
-          className={`${styles.sortButton} ${sortOrder === 'newest' ? styles.sortActive : ''}`}
-          onClick={() => onSortChange('newest')}
-          title="Newest first"
-          aria-label="Sort newest first"
-          aria-pressed={sortOrder === 'newest'}
+          className={`${styles.sortButton} ${sortOrder !== 'shuffle' ? styles.sortActive : ''}`}
+          onClick={() => onSortChange(sortOrder === 'newest' ? 'oldest' : 'newest')}
+          title={sortOrder === 'newest' ? 'Switch to oldest first' : 'Switch to newest first'}
+          aria-label={sortOrder === 'newest' ? 'Switch to oldest first' : 'Switch to newest first'}
+          aria-pressed={sortOrder !== 'shuffle'}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="19" x2="12" y2="5"/>
-            <polyline points="5 12 12 5 19 12"/>
+            {sortOrder === 'newest' ? (
+              <>
+                <line x1="12" y1="19" x2="12" y2="5"/>
+                <polyline points="5 12 12 5 19 12"/>
+              </>
+            ) : (
+              <>
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </>
+            )}
           </svg>
-          Newest
-        </button>
-
-        {/* Oldest — arrow pointing down */}
-        <button
-          className={`${styles.sortButton} ${sortOrder === 'oldest' ? styles.sortActive : ''}`}
-          onClick={() => onSortChange('oldest')}
-          title="Oldest first"
-          aria-label="Sort oldest first"
-          aria-pressed={sortOrder === 'oldest'}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <polyline points="19 12 12 19 5 12"/>
-          </svg>
-          Oldest
+          {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
         </button>
 
         {/* Shuffle — dice */}

@@ -77,3 +77,22 @@
   border-color: #666;
   background-color: #2d2d2d;
 }
+
+@media (max-width: 560px) {
+  .header {
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 12px;
+  }
+
+  .filters {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .sortGroup {
+    width: 100%;
+    justify-content: center;
+  }
+}

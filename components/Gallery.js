@@ -7,7 +7,7 @@ import styles from './Gallery.module.css'
 const INITIAL_BATCH_SIZE = 24
 const LOAD_MORE_BATCH_SIZE = 16
 
-export default function Gallery({ photos }) {
+export default function Gallery({ photos, onMetadataFilter }) {
   const [selected, setSelected] = useState(null)
   const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH_SIZE)
   const loadMoreRef = useRef(null)
@@ -17,6 +17,8 @@ export default function Gallery({ photos }) {
   useEffect(() => {
     setVisibleCount(INITIAL_BATCH_SIZE)
   }, [photos])
+
+  const visiblePhotos = photos.slice(0, visibleCount)
 
   useEffect(() => {
     if (!selected) return
@@ -58,13 +60,16 @@ export default function Gallery({ photos }) {
     return () => observer.disconnect()
   }, [photos.length, visibleCount])
 
-  const visiblePhotos = photos.slice(0, visibleCount)
+  const handleMetadataClick = (keyOrFilters, value) => {
+    onMetadataFilter?.(keyOrFilters, value)
+    close()
+  }
 
   return (
     <>
       <div className={styles.container}>
         <div className={styles.gallery}>
-          {visiblePhotos.map(photo => (
+          {visiblePhotos.map((photo) => (
             <div
               key={photo._id}
               className={styles.galleryItem}
@@ -121,10 +126,56 @@ export default function Gallery({ photos }) {
               />
             </div>
             <div className={styles.lightboxMeta}>
-              <h2>{selected.band}</h2>
-              {selected.venue && <span>{selected.venue}</span>}
-              {selected.city && <span>{selected.city}</span>}
-              {selected.date && <span>{selected.date}</span>}
+              <h2>
+                <button
+                  type="button"
+                  className={`${styles.metaLink} ${styles.metaTitleLink}`}
+                  onClick={() => handleMetadataClick('band', selected.band)}
+                  aria-label={`View all photos from ${selected.band}`}
+                >
+                  {selected.band}
+                </button>
+              </h2>
+              {selected.venue && selected.city && (
+                <button
+                  type="button"
+                  className={styles.metaLink}
+                  onClick={() => handleMetadataClick({ venue: selected.venue, city: selected.city })}
+                  aria-label={`View all photos from ${selected.venue} in ${selected.city}`}
+                >
+                  {selected.venue} - {selected.city}
+                </button>
+              )}
+              {selected.venue && !selected.city && (
+                <button
+                  type="button"
+                  className={styles.metaLink}
+                  onClick={() => handleMetadataClick('venue', selected.venue)}
+                  aria-label={`View all photos from ${selected.venue}`}
+                >
+                  {selected.venue}
+                </button>
+              )}
+              {!selected.venue && selected.city && (
+                <button
+                  type="button"
+                  className={styles.metaLink}
+                  onClick={() => handleMetadataClick('city', selected.city)}
+                  aria-label={`View all photos from ${selected.city}`}
+                >
+                  {selected.city}
+                </button>
+              )}
+              {selected.date && (
+                <button
+                  type="button"
+                  className={styles.metaLink}
+                  onClick={() => handleMetadataClick('date', selected.date)}
+                  aria-label={`View all photos from ${selected.date}`}
+                >
+                  {selected.date}
+                </button>
+              )}
             </div>
           </div>
         </div>
