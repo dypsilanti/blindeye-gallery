@@ -1,4 +1,7 @@
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   background-color: #1a1a1a;
   color: white;
   padding: 20px;
@@ -9,6 +12,12 @@
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+}
+
+.headerHidden {
+  transform: translateY(-100%);
 }
 
 .title {

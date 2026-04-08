@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import Header from '@/components/Header'
 import Gallery from '@/components/Gallery'
 import Footer from '@/components/Footer'
@@ -29,6 +29,23 @@ export default function HomeClient({ photos, initialShuffleSeed }) {
   const [filters, setFilters] = useState({ band: '', venue: '', year: '' })
   const [sortOrder, setSortOrder] = useState('shuffle')
   const [shuffleSeed, setShuffleSeed] = useState(initialShuffleSeed)
+  const [headerHidden, setHeaderHidden] = useState(false)
+  const lastScrollY = useRef(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY
+      const diff = currentY - lastScrollY.current
+      if (diff > 8) {
+        setHeaderHidden(true)
+      } else if (diff < -8) {
+        setHeaderHidden(false)
+      }
+      lastScrollY.current = currentY
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const handleSortChange = (order) => {
     if (order === 'shuffle') {
@@ -75,6 +92,7 @@ export default function HomeClient({ photos, initialShuffleSeed }) {
         years={years}
         sortOrder={sortOrder}
         onSortChange={handleSortChange}
+        hidden={headerHidden}
       />
       <Gallery photos={orderedPhotos} />
       <Footer />

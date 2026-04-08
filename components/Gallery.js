@@ -80,7 +80,7 @@ export default function Gallery({ photos }) {
                 width={400}
                 height={500}
                 className={styles.image}
-                sizes="(max-width: 600px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                sizes="(max-width: 1024px) 33vw, 25vw"
               />
               <div className={styles.overlay}>
                 <h3>{photo.band}</h3>

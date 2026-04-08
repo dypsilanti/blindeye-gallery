@@ -1,9 +1,9 @@
 import FilterMenu from './FilterMenu'
 import styles from './Header.module.css'
 
-export default function Header({ filters, onFilterChange, bands, venues, years, sortOrder, onSortChange }) {
+export default function Header({ filters, onFilterChange, bands, venues, years, sortOrder, onSortChange, hidden }) {
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header}${hidden ? ' ' + styles.headerHidden : ''}`}>
       <h1 className={styles.title}>
         <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" stroke="black" strokeWidth="3" className={styles.icon}>
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
