@@ -6,10 +6,108 @@ loadEnvConfig(process.cwd())
 
 const editableFields = new Set(['band', 'venue', 'city', 'date'])
 
+function parseRangeValue(input) {
+  const value = input.trim()
+
+  if (!value) {
+    throw new Error('Empty range value')
+  }
+
+  if (value.includes('..')) {
+    const [startRaw, endRaw] = value.split('..')
+    const start = startRaw?.trim()
+    const end = endRaw?.trim()
+
+    if (!start || !end) {
+      throw new Error(`Invalid range format: ${value}. Use start..end or prefix001-010`)
+    }
+
+    return {type: 'lexical', start, end}
+  }
+
+  const dashIndex = value.lastIndexOf('-')
+  if (dashIndex === -1) {
+    throw new Error(`Invalid range format: ${value}. Use start..end or prefix001-010`)
+  }
+
+  const left = value.slice(0, dashIndex).trim()
+  const right = value.slice(dashIndex + 1).trim()
+
+  if (!left || !right) {
+    throw new Error(`Invalid range format: ${value}. Use start..end or prefix001-010`)
+  }
+
+  const leftMatch = left.match(/^(.*?)(\d+)$/)
+  if (!leftMatch) {
+    return {type: 'lexical', start: left, end: right}
+  }
+
+  const [, prefix, leftDigits] = leftMatch
+  const rightMatch = right.match(/^(.*?)(\d+)$/)
+
+  // Supports compact shorthand like dsc_001-010.
+  if (!rightMatch) {
+    throw new Error(`Invalid numeric range end: ${right}`)
+  }
+
+  let rightPrefix = rightMatch[1]
+  let rightDigits = rightMatch[2]
+
+  if (!rightPrefix) {
+    rightPrefix = prefix
+  }
+
+  if (rightPrefix !== prefix) {
+    throw new Error(`Range prefixes must match: ${left} - ${right}`)
+  }
+
+  const width = Math.max(leftDigits.length, rightDigits.length)
+  const startNumber = Number.parseInt(leftDigits, 10)
+  const endNumber = Number.parseInt(rightDigits, 10)
+
+  if (Number.isNaN(startNumber) || Number.isNaN(endNumber)) {
+    throw new Error(`Invalid numeric range values: ${value}`)
+  }
+
+  const min = Math.min(startNumber, endNumber)
+  const max = Math.max(startNumber, endNumber)
+
+  return {
+    type: 'numericSuffix',
+    prefix,
+    min,
+    max,
+    width,
+  }
+}
+
+function matchesRange(value, descriptor) {
+  const candidate = String(value || '')
+
+  if (!candidate) return false
+
+  if (descriptor.type === 'lexical') {
+    return candidate >= descriptor.start && candidate <= descriptor.end
+  }
+
+  const match = candidate.match(/^(.*?)(\d+)$/)
+  if (!match) return false
+
+  const [, prefix, digits] = match
+  if (prefix !== descriptor.prefix) return false
+  if (digits.length < descriptor.width) return false
+
+  const numeric = Number.parseInt(digits, 10)
+  if (Number.isNaN(numeric)) return false
+
+  return numeric >= descriptor.min && numeric <= descriptor.max
+}
+
 function parseArgs() {
   const args = process.argv.slice(2)
   const where = {}
   const whereContains = {}
+  const whereRange = {}
   const set = {}
   let dryRun = false
   let applyToAll = false
@@ -67,6 +165,24 @@ function parseArgs() {
       continue
     }
 
+    if (arg === '--where-range') {
+      const pair = args[index + 1]
+      if (!pair || !pair.includes('=')) {
+        throw new Error('Expected --where-range field=start..end or field=prefix001-010')
+      }
+
+      const [field, ...rest] = pair.split('=')
+      const value = rest.join('=').trim()
+
+      if (!editableFields.has(field)) {
+        throw new Error(`Unsupported --where-range field: ${field}`)
+      }
+
+      whereRange[field] = parseRangeValue(value)
+      index += 1
+      continue
+    }
+
     if (arg === '--set') {
       const pair = args[index + 1]
       if (!pair || !pair.includes('=')) {
@@ -92,15 +208,15 @@ function parseArgs() {
     throw new Error(`Unknown argument: ${arg}`)
   }
 
-  if (!applyToAll && Object.keys(where).length === 0 && Object.keys(whereContains).length === 0) {
-    throw new Error('At least one --where or --where-contains is required')
+  if (!applyToAll && Object.keys(where).length === 0 && Object.keys(whereContains).length === 0 && Object.keys(whereRange).length === 0) {
+    throw new Error('At least one --where, --where-contains, or --where-range is required')
   }
 
   if (Object.keys(set).length === 0) {
     throw new Error('At least one --set field=value is required')
   }
 
-  return {where, whereContains, set, dryRun, applyToAll}
+  return {where, whereContains, whereRange, set, dryRun, applyToAll}
 }
 
 function createSanityClient() {
@@ -121,21 +237,24 @@ function createSanityClient() {
   })
 }
 
-function matchesWhere(photo, where, whereContains) {
+function matchesWhere(photo, where, whereContains, whereRange) {
   const exactMatch = Object.entries(where).every(([field, value]) => String(photo[field] || '') === value)
   const containsMatch = Object.entries(whereContains).every(([field, value]) =>
     String(photo[field] || '').toLowerCase().includes(value.toLowerCase()),
   )
+  const rangeMatch = Object.entries(whereRange).every(([field, descriptor]) =>
+    matchesRange(photo[field], descriptor),
+  )
 
-  return exactMatch && containsMatch
+  return exactMatch && containsMatch && rangeMatch
 }
 
 async function main() {
-  const {where, whereContains, set, dryRun, applyToAll} = parseArgs()
+  const {where, whereContains, whereRange, set, dryRun, applyToAll} = parseArgs()
   const client = createSanityClient()
 
   const photos = await client.fetch(`*[_type == "photo"]{_id, band, venue, city, date}`)
-  const matches = applyToAll ? photos : photos.filter((photo) => matchesWhere(photo, where, whereContains))
+  const matches = applyToAll ? photos : photos.filter((photo) => matchesWhere(photo, where, whereContains, whereRange))
 
   if (matches.length === 0) {
     console.log('No matching photos found.')
@@ -146,6 +265,7 @@ async function main() {
   console.log(`All: ${applyToAll}`)
   console.log(`Filter: ${JSON.stringify(where)}`)
   console.log(`Contains Filter: ${JSON.stringify(whereContains)}`)
+  console.log(`Range Filter: ${JSON.stringify(whereRange)}`)
   console.log(`Update: ${JSON.stringify(set)}`)
 
   if (dryRun) {
@@ -167,6 +287,6 @@ async function main() {
 
 main().catch((error) => {
   console.error(error.message)
-  console.error('Usage: npm run bulk:update:photos -- --all --set date=2026-02-21 OR --where band=adhesive --where-contains band=adhesive --set venue=Curleys [--set city=Buffalo] [--dry-run]')
+  console.error('Usage: npm run bulk:update:photos -- --all --set date=2026-02-21 OR --where band=adhesive --where-contains band=adhesive --where-range band=dsc_001-010 --set venue=Curleys [--set city=Buffalo] [--dry-run]')
   process.exit(1)
 })

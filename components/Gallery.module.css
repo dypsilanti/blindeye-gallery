@@ -5,6 +5,10 @@
   gap: 0;
 }
 
+.loadMoreTrigger {
+  height: 1px;
+}
+
 .galleryItem {
   position: relative;
   overflow: hidden;

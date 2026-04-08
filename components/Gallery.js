@@ -1,13 +1,22 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import styles from './Gallery.module.css'
 
+const INITIAL_BATCH_SIZE = 24
+const LOAD_MORE_BATCH_SIZE = 16
+
 export default function Gallery({ photos }) {
   const [selected, setSelected] = useState(null)
+  const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH_SIZE)
+  const loadMoreRef = useRef(null)
 
   const close = useCallback(() => setSelected(null), [])
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_BATCH_SIZE)
+  }, [photos])
 
   useEffect(() => {
     if (!selected) return
@@ -22,11 +31,40 @@ export default function Gallery({ photos }) {
     return () => { document.body.style.overflow = '' }
   }, [selected])
 
+  useEffect(() => {
+    const trigger = loadMoreRef.current
+
+    if (!trigger || visibleCount >= photos.length) return
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setVisibleCount(photos.length)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+
+        setVisibleCount((currentCount) => {
+          if (currentCount >= photos.length) return currentCount
+          return Math.min(currentCount + LOAD_MORE_BATCH_SIZE, photos.length)
+        })
+      },
+      { rootMargin: '120px 0px' }
+    )
+
+    observer.observe(trigger)
+
+    return () => observer.disconnect()
+  }, [photos.length, visibleCount])
+
+  const visiblePhotos = photos.slice(0, visibleCount)
+
   return (
     <>
       <div className={styles.container}>
         <div className={styles.gallery}>
-          {photos.map(photo => (
+          {visiblePhotos.map(photo => (
             <div
               key={photo._id}
               className={styles.galleryItem}
@@ -42,6 +80,7 @@ export default function Gallery({ photos }) {
                 width={400}
                 height={500}
                 className={styles.image}
+                sizes="(max-width: 600px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
               />
               <div className={styles.overlay}>
                 <h3>{photo.band}</h3>
@@ -52,6 +91,14 @@ export default function Gallery({ photos }) {
             </div>
           ))}
         </div>
+
+        {visibleCount < photos.length && (
+          <div
+            ref={loadMoreRef}
+            className={styles.loadMoreTrigger}
+            aria-hidden="true"
+          />
+        )}
       </div>
 
       {selected && (

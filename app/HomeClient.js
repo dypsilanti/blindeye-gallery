@@ -5,23 +5,34 @@ import Header from '@/components/Header'
 import Gallery from '@/components/Gallery'
 import Footer from '@/components/Footer'
 
-function shuffleArray(arr) {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]
+function getSeededRank(value, seed) {
+  let hash = (2166136261 ^ seed) >>> 0
+
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
   }
-  return a
+
+  return hash >>> 0
 }
 
-export default function HomeClient({ photos }) {
+function shuffleArray(arr, seed) {
+  return [...arr].sort((a, b) => {
+    const idA = String(a._id || a.imageUrl || '')
+    const idB = String(b._id || b.imageUrl || '')
+
+    return getSeededRank(idA, seed) - getSeededRank(idB, seed)
+  })
+}
+
+export default function HomeClient({ photos, initialShuffleSeed }) {
   const [filters, setFilters] = useState({ band: '', venue: '', year: '' })
-  const [sortOrder, setSortOrder] = useState('newest')
-  const [shuffleSeed, setShuffleSeed] = useState(null)
+  const [sortOrder, setSortOrder] = useState('shuffle')
+  const [shuffleSeed, setShuffleSeed] = useState(initialShuffleSeed)
 
   const handleSortChange = (order) => {
     if (order === 'shuffle') {
-      setShuffleSeed(Math.random())
+      setShuffleSeed(Math.floor(Math.random() * 4294967295))
     }
     setSortOrder(order)
   }
@@ -48,7 +59,7 @@ export default function HomeClient({ photos }) {
       return [...base].sort((a, b) => (a.date || '').localeCompare(b.date || ''))
     }
     if (sortOrder === 'shuffle') {
-      return shuffleArray(base)
+      return shuffleArray(base, shuffleSeed)
     }
     return base
   // eslint-disable-next-line react-hooks/exhaustive-deps

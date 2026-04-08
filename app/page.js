@@ -8,6 +8,9 @@ export const dynamic = 'force-dynamic'
 function formatFriendlyDate(dateString) {
   if (!dateString) return 'an unknown date'
 
+  // Preserve year-only values as-is so "2000" doesn't become "January 1, 2000".
+  if (/^\d{4}$/.test(dateString)) return dateString
+
   const date = new Date(dateString)
   if (Number.isNaN(date.getTime())) return dateString
 
@@ -20,6 +23,7 @@ function formatFriendlyDate(dateString) {
 
 export default async function Home() {
   const rawPhotos = await client.fetch(photosQuery, {}, {cache: 'no-store'})
+  const initialShuffleSeed = Math.floor(Math.random() * 4294967295)
 
   const photos = rawPhotos.map(photo => ({
     ...photo,
@@ -32,5 +36,5 @@ export default async function Home() {
       : null,
   }))
 
-  return <HomeClient photos={photos} />
+  return <HomeClient photos={photos} initialShuffleSeed={initialShuffleSeed} />
 }
