@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import HomeClient from './HomeClient'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
@@ -36,5 +37,9 @@ export default async function Home() {
       : null,
   }))
 
-  return <HomeClient photos={photos} initialShuffleSeed={initialShuffleSeed} />
+  return (
+    <Suspense>
+      <HomeClient photos={photos} initialShuffleSeed={initialShuffleSeed} />
+    </Suspense>
+  )
 }

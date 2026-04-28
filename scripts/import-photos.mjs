@@ -86,6 +86,19 @@ function createSanityClient() {
   })
 }
 
+function resolveMetadataForFile({metadata, filePath, metadataDir}) {
+  const filename = path.basename(filePath)
+  const basename = path.parse(filename).name
+  const fileDir = path.dirname(path.resolve(filePath))
+  const wildcardMetadata = metadataDir && fileDir === metadataDir ? metadata['*'] || {} : {}
+  const specificMetadata = metadata[filename] || metadata[basename] || {}
+
+  return {
+    ...wildcardMetadata,
+    ...specificMetadata,
+  }
+}
+
 async function fetchImportedFilenames(client) {
   // Retrieve every photo document and follow the image asset reference so we
   // can read the originalFilename that Sanity stores when an asset is uploaded.
@@ -101,6 +114,7 @@ async function fetchImportedFilenames(client) {
 async function main() {
   const {imagesDir, metadataPath} = parseArgs()
   const metadata = await loadMetadata(metadataPath)
+  const metadataDir = metadataPath ? path.dirname(path.resolve(metadataPath)) : null
   const client = createSanityClient()
 
   const directoryStats = await stat(imagesDir)
@@ -131,7 +145,7 @@ async function main() {
     }
 
     const filenameData = parseFromFilename(filePath)
-    const metadataData = metadata[filename] || metadata[path.parse(filename).name] || {}
+    const metadataData = resolveMetadataForFile({metadata, filePath, metadataDir})
 
     const band = metadataData.band ?? filenameData.band
     const venue = metadataData.venue ?? filenameData.venue

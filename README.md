@@ -60,14 +60,21 @@ Metadata JSON format (key by filename or filename without extension):
 
 ```json
 {
-	"my-photo.jpg": {
+	"*": {
 		"band": "The National",
 		"venue": "Red Rocks",
 		"city": "Morrison",
 		"date": "2026-03-11"
+	},
+	"my-photo.jpg": {
+		"venue": "Mission Ballroom"
 	}
 }
 ```
+
+Wildcard rules:
+- `"*"` applies to all image files in the same folder as the metadata JSON file.
+- Filename-specific keys override wildcard values for matching files.
 
 Required env var for imports:
 - `SANITY_API_TOKEN` (write-capable token)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
 import Gallery from '@/components/Gallery'
 import Footer from '@/components/Footer'
@@ -30,7 +31,17 @@ function normalizeVenueSortName(venue) {
 }
 
 export default function HomeClient({ photos, initialShuffleSeed }) {
-  const [filters, setFilters] = useState({ band: '', venue: '', year: '', city: '', date: '' })
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const [filters, setFilters] = useState(() => ({
+    band: searchParams.get('band') || '',
+    venue: searchParams.get('venue') || '',
+    year: searchParams.get('year') || '',
+    city: searchParams.get('city') || '',
+    date: searchParams.get('date') || '',
+  }))
   const [sortOrder, setSortOrder] = useState('shuffle')
   const [shuffleSeed, setShuffleSeed] = useState(initialShuffleSeed)
   const [headerHidden, setHeaderHidden] = useState(false)
@@ -50,6 +61,18 @@ export default function HomeClient({ photos, initialShuffleSeed }) {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Keep the URL in sync with active filters so the page is shareable as a link.
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (filters.band) params.set('band', filters.band)
+    if (filters.venue) params.set('venue', filters.venue)
+    if (filters.year) params.set('year', filters.year)
+    if (filters.city) params.set('city', filters.city)
+    if (filters.date) params.set('date', filters.date)
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [filters, pathname, router])
 
   const handleSortChange = (order) => {
     if (order === 'shuffle') {
